@@ -1,3 +1,5 @@
 node_modules
 chave-api.txt
 teste.js
+package-lock.json
+package.json
