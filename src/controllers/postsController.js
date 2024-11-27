@@ -1,7 +1,8 @@
 // Camada padrão para lidar com as requisições (req) e respostas (res)
 
 import fs from "fs"; // Importa o módulo fs do Node.js para realizar operações no sistema de arquivos
-import {getTodosPosts, criarPost} from "../models/postsModel.js"; // Importa as funções para obter e criar posts do modelo de dados
+import {getTodosPosts, criarPost, atualizarPost} from "../models/postsModel.js"; // Importa as funções para obter e criar posts do modelo de dados
+import gerarDescricaoComGemini from "../services/geminiService.js";
 
 // Função assíncrona para listar todos os posts
 export async function listarPosts(req, res) {
@@ -48,3 +49,23 @@ export async function uploadImagem(req, res) {
     res.status(500).json({"Erro":"Falha na requisição"})
   }
 }
+
+export async function atualizarNovoPost(req, res) {
+  const id = req.params.id;
+  const urlImagem = `http://localhost:3000/${id}.png`;
+  try {
+    const imgBuffer = fs.readFileSync(`uploads/${id}.png`);
+    const descricao = await gerarDescricaoComGemini(imgBuffer);
+    const post = {
+      imgUrl: urlImagem,
+      descricao: descricao,
+      alt: req.body.alt
+    }
+    const postCriado = await atualizarPost(id, post);
+    res.status(200).json(postCriado);
+  } catch (erro) {
+    console.error(erro.message);
+    res.status(500).json({"Erro":"Falha na requisição"})
+  }
+}
+
